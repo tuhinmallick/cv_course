@@ -18,14 +18,17 @@ def show(name, img, x, y):
 def harrisResponseImage(img):
 
     ## TODO 1.1
+    ## (Done)
     ## Compute the spatial derivatives in x and y direction.
-
+    dIdx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
+    dIdy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
 
     show("dI/dx", abs(dIdx), 1, 0)
     show("dI/dy", abs(dIdy), 2, 0)
 
     ##########################################################
     ## TODO 1.2
+    # (Done)
     ## Compute Ixx, Iyy, and Ixy with
     ## Ixx = (dI/dx) * (dI/dx),
     ## Iyy = (dI/dy) * (dI/dy),
@@ -33,10 +36,12 @@ def harrisResponseImage(img):
     ## Note: The multiplication between the images is element-wise (not a matrix
     ## multiplication)!!
 
-
-    show("Ixx", abs(dIdx), 0, 1)
-    show("Iyy", abs(dIdy), 1, 1)
-    show("Ixy", abs(dIdx), 2, 1)
+    Ixx = dIdx ** 2
+    Iyy = dIdy ** 2
+    Ixy = dIdy * dIdy
+    show("Ixx", abs(Ixx), 0, 1)
+    show("Iyy", abs(Iyy), 1, 1)
+    show("Ixy", abs(Ixy), 2, 1)
 
     ##########################################################
     ## TODO 1.3
@@ -46,11 +51,13 @@ def harrisResponseImage(img):
 
     kernelSize = (3, 3)
     sdev = 1
+    A = cv2.GaussianBlur(Ixx, kernelSize, sdev)
+    B = cv2.GaussianBlur(Iyy, kernelSize, sdev)
+    C = cv2.GaussianBlur(Ixy, kernelSize, sdev)
 
-
-    show("A", abs(A) * 5, 0, 1);
-    show("B", abs(B) * 5, 1, 1);
-    show("C", abs(C) * 5, 2, 1);
+    show("A", abs(A) * 5, 0, 1)
+    show("B", abs(B) * 5, 1, 1)
+    show("C", abs(C) * 5, 2, 1)
 
     ##########################################################
     ## TODO 1.4
@@ -58,8 +65,11 @@ def harrisResponseImage(img):
     ## R = Det - k * Trace*Trace
     ## Det = A * B - C * C
     ## Trace = A + B
-    k = 0.06;
+    k = 0.06
 
+    trace = A + B
+    det = A * B - C * C
+    response = det - k * trace ** 2
 
     ## Normalize the response image
     dbg = (response - np.min(response)) / (np.max(response) - np.min(response))
