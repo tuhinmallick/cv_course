@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage.filters import minimum_filter
 
 
 def show(name, img, x, y):
@@ -75,7 +76,6 @@ def harrisResponseImage(img):
     response = det - k * (trace ** 2)
 
     ## Normalize the response image
-    # not sure if it's working right
     dbg = (response - np.min(response)) / (np.max(response) - np.min(response))
     dbg = dbg.astype(np.float32)
     show("Harris Response", dbg, 0, 2)
@@ -103,11 +103,14 @@ def harrisKeypoints(response, threshold=0.1):
     ## Don't generate keypoints at the image border.
     ## Note: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
     points = []
-    R = response * (response >= threshold)
-    R = R * (R == maximum_filter(R, size=(3, 3)))
+    peaks = response * (response >= threshold)
+    peaks = peaks * (peaks == maximum_filter(peaks, size=(3, 3)))
 
-    indices = np.nonzero(R)
+    indices = np.nonzero(peaks)
+    xborder, yborder = ([0, response.shape[0]], [0, response.shape[1]])
     for y, x in zip(indices[0], indices[1]):
+        if x in xborder or y in yborder:  # not considering border points
+            continue
         points.append(cv2.KeyPoint(x, y, 1))
 
     return points
