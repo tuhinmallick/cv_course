@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
+from scipy.ndimage.filters import maximum_filter
+
 
 def show(name, img, x, y):
-    windowStartX  = 10
-    windowStartY  = 50
+    windowStartX = 10
+    windowStartY = 50
     windowXoffset = 5
     windowYoffset = 40
 
@@ -15,8 +17,8 @@ def show(name, img, x, y):
     cv2.imshow(name, img)
     cv2.waitKey(0)
 
-def harrisResponseImage(img):
 
+def harrisResponseImage(img):
     ## TODO 1.1
     ## (Done)
     ## Compute the spatial derivatives in x and y direction.
@@ -38,7 +40,7 @@ def harrisResponseImage(img):
 
     Ixx = dIdx ** 2
     Iyy = dIdy ** 2
-    Ixy = dIdy * dIdy
+    Ixy = dIdx * dIdy
     show("Ixx", abs(Ixx), 0, 1)
     show("Iyy", abs(Iyy), 1, 1)
     show("Ixy", abs(Ixy), 2, 1)
@@ -61,6 +63,7 @@ def harrisResponseImage(img):
 
     ##########################################################
     ## TODO 1.4
+    # (Done)
     ## Compute the harris response with the following formula:
     ## R = Det - k * Trace*Trace
     ## Det = A * B - C * C
@@ -69,9 +72,10 @@ def harrisResponseImage(img):
 
     trace = A + B
     det = A * B - C * C
-    response = det - k * trace ** 2
+    response = det - k * (trace ** 2)
 
     ## Normalize the response image
+    # not sure if it's working right
     dbg = (response - np.min(response)) / (np.max(response) - np.min(response))
     dbg = dbg.astype(np.float32)
     show("Harris Response", dbg, 0, 2)
@@ -88,9 +92,10 @@ def harrisResponseImage(img):
 
     return response
 
-def harrisKeypoints(response, threshold = 0.1):
 
+def harrisKeypoints(response, threshold=0.1):
     ## TODO 2.1
+    # (Done)
     ## Generate a keypoint for a pixel,
     ## if the response is larger than the threshold
     ## and it is a local maximum.
@@ -98,12 +103,17 @@ def harrisKeypoints(response, threshold = 0.1):
     ## Don't generate keypoints at the image border.
     ## Note: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
     points = []
+    R = response * (response >= threshold)
+    R = R * (R == maximum_filter(R, size=(3, 3)))
 
+    indices = np.nonzero(R)
+    for y, x in zip(indices[0], indices[1]):
+        points.append(cv2.KeyPoint(x, y, 1))
 
     return points
 
-def harrisEdges(input, response, edge_threshold=-0.01):
 
+def harrisEdges(input, response, edge_threshold=-0.01):
     ## TODO 2.2
     ## Set edge pixels to red.
     ##
@@ -113,14 +123,12 @@ def harrisEdges(input, response, edge_threshold=-0.01):
     ## Don't generate edges at the image border.
     result = input.copy()
 
-
     return result
 
 
 def main():
-
     input_img = cv2.imread('blox.jpg')  ## read the image
-    input_gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY) ## convert to grayscale
+    input_gray = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)  ## convert to grayscale
     input_gray = (input_gray - np.min(input_gray)) / (np.max(input_gray) - np.min(input_gray))  ## normalize
     input_gray = input_gray.astype(np.float32)  ## convert to float32 for filtering
 
@@ -129,7 +137,7 @@ def main():
     points = harrisKeypoints(response)
     edges = harrisEdges(input_img, response)
 
-    imgKeypoints1 = cv2.drawKeypoints(input_img, points,  outImage=None, color=(0, 255, 0))
+    imgKeypoints1 = cv2.drawKeypoints(input_img, points, outImage=None, color=(0, 255, 0))
     show("Harris Keypoints", imgKeypoints1, 1, 2)
     show("Harris Edges", edges, 2, 2)
 
