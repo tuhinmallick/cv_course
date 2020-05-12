@@ -145,10 +145,6 @@ def harrisEdges(input, response, edge_threshold=-0.01):
         result[minima_x, x] =  (0, 0, 255)
         result[y, minima_y] =  (0, 0, 255)
 
-    for x, res in enumerate(response):
-        y = argrelextrema(res, np.less)
-        result[x, y[0]] =  (0, 0, 255)
-
     return result
 
 
