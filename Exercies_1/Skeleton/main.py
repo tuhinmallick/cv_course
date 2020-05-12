@@ -1,7 +1,18 @@
+"""
+Created on May 9, 2020.
+
+@authors:
+Amin Heydarshahi <amin.heydarshahi@fau.de>
+Soroosh Tayebi Arasteh <soroosh.arasteh@fau.de>
+https://github.com/starasteh/
+"""
+
 import cv2
 import numpy as np
 from scipy.ndimage.filters import maximum_filter
-from scipy.ndimage.filters import minimum_filter
+import pdb
+from skimage.feature import peak_local_max
+from scipy.signal import argrelextrema
 
 
 def show(name, img, x, y):
@@ -20,8 +31,6 @@ def show(name, img, x, y):
 
 
 def harrisResponseImage(img):
-    ## TODO 1.1
-    ## (Done)
     ## Compute the spatial derivatives in x and y direction.
     dIdx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
     dIdy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
@@ -30,8 +39,6 @@ def harrisResponseImage(img):
     show("dI/dy", abs(dIdy), 2, 0)
 
     ##########################################################
-    ## TODO 1.2
-    # (Done)
     ## Compute Ixx, Iyy, and Ixy with
     ## Ixx = (dI/dx) * (dI/dx),
     ## Iyy = (dI/dy) * (dI/dy),
@@ -47,7 +54,6 @@ def harrisResponseImage(img):
     show("Ixy", abs(Ixy), 2, 1)
 
     ##########################################################
-    ## TODO 1.3
     ## Compute the images A,B, and C by blurring the
     ## images Ixx, Iyy, and Ixy with a
     ## Gaussian filter of size 3x3 and standard deviation of 1.
@@ -63,14 +69,11 @@ def harrisResponseImage(img):
     show("C", abs(C) * 5, 2, 1)
 
     ##########################################################
-    ## TODO 1.4
-    # (Done)
     ## Compute the harris response with the following formula:
     ## R = Det - k * Trace*Trace
     ## Det = A * B - C * C
     ## Trace = A + B
     k = 0.06
-
     trace = A + B
     det = A * B - C * C
     response = det - k * (trace ** 2)
@@ -94,37 +97,56 @@ def harrisResponseImage(img):
 
 
 def harrisKeypoints(response, threshold=0.1):
-    ## TODO 2.1
-    # (Done)
-    ## Generate a keypoint for a pixel,
-    ## if the response is larger than the threshold
-    ## and it is a local maximum.
-    ##
-    ## Don't generate keypoints at the image border.
-    ## Note: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
+    '''
+    Generate a keypoint for a pixel,
+    if the response is larger than the threshold
+    and it is a local maximum.
+    Don't generate keypoints at the image border.
+    Note: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
+
+    :param response: Harris response of an image
+    :param threshold: Minimum intensity of peaks
+    :return: list of the keypoints
+    '''
     points = []
-    peaks = response * (response >= threshold)
-    peaks = peaks * (peaks == maximum_filter(peaks, size=(3, 3)))
 
-    indices = np.nonzero(peaks)
-    xborder, yborder = ([0, response.shape[0]], [0, response.shape[1]])
-    for y, x in zip(indices[0], indices[1]):
-        if x in xborder or y in yborder:  # not considering border points
-            continue
-        points.append(cv2.KeyPoint(x, y, 1))
+    # method 1
+    # peaks = response * (response >= threshold)
+    # peaks = peaks * (peaks == maximum_filter(peaks, size=(3, 3)))
+    # indices = np.nonzero(peaks)
+    # xborder, yborder = ([0, response.shape[0]], [0, response.shape[1]])
+    # for y, x in zip(indices[0], indices[1]):
+    #     if x in xborder or y in yborder:  # not considering border points
+    #         continue
+    #     points.append(cv2.KeyPoint(x, y, 1))
 
+    # method 2
+    maxima = peak_local_max(response, min_distance=1, threshold_abs=threshold)
+    for maximum in maxima:
+        points.append(cv2.KeyPoint(maximum[1], maximum[0], 1))
+    # with changing k in the R equation, we detect different number of corners.
+    # k = 0.005 is the best according to this image.
     return points
 
 
 def harrisEdges(input, response, edge_threshold=-0.01):
-    ## TODO 2.2
-    ## Set edge pixels to red.
-    ##
-    ## A pixel belongs to an edge, if the response is smaller than a threshold
-    ## and it is a minimum in x or y direction.
-    ##
-    ## Don't generate edges at the image border.
+    '''
+    Set edge pixels to red.
+
+    A pixel belongs to an edge, if the response is smaller than a threshold
+    and it is a minimum in x or y direction.
+    Don't generate edges at the image border.
+    :param input: input image
+    :param response: harris response of the image
+    :param edge_threshold: Maximum intensity
+    '''
     result = input.copy()
+
+    response = np.where(response > edge_threshold, np.inf, response)
+
+    for x, res in enumerate(response):
+        y = argrelextrema(res, np.less)
+        result[x, y[0]] =  (0, 0, 255)
 
     return result
 
