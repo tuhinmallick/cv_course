@@ -2,15 +2,12 @@
 Created on May 9, 2020.
 
 @authors:
-Amin Heydarshahi <amin.heydarshahi@fau.de>
-Soroosh Tayebi Arasteh <soroosh.arasteh@fau.de>
-https://github.com/starasteh/
+Soroosh Tayebi Arasteh <soroosh.arasteh@fau.de> https://github.com/starasteh/
+Amin Heydarshahi <amin.heydarshahi@fau.de> https://github.com/aminheydarshahi/
 """
 
 import cv2
 import numpy as np
-from scipy.ndimage.filters import maximum_filter
-import pdb
 from skimage.feature import peak_local_max
 from scipy.signal import argrelextrema
 
@@ -31,7 +28,12 @@ def show(name, img, x, y):
 
 
 def harrisResponseImage(img):
-    ## Compute the spatial derivatives in x and y direction.
+    '''
+    Compute the spatial derivatives in x and y direction.
+
+    :param img: input image
+    :return: Harris response of the image
+    '''
     dIdx = cv2.Sobel(img, cv2.CV_32F, 1, 0)
     dIdy = cv2.Sobel(img, cv2.CV_32F, 0, 1)
 
@@ -102,30 +104,21 @@ def harrisKeypoints(response, threshold=0.1):
     if the response is larger than the threshold
     and it is a local maximum.
     Don't generate keypoints at the image border.
-    Note: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
+
+    Note 1: Keypoints are stored with (x,y) and images are accessed with (y,x)!!
+
+    Note 2: with changing k in the R equation, we detect different number of corners.
+        k = 0.005 is the best according to this image.
 
     :param response: Harris response of an image
     :param threshold: Minimum intensity of peaks
     :return: list of the keypoints
     '''
     points = []
-
-    # method 1
-    # peaks = response * (response >= threshold)
-    # peaks = peaks * (peaks == maximum_filter(peaks, size=(3, 3)))
-    # indices = np.nonzero(peaks)
-    # xborder, yborder = ([0, response.shape[0]], [0, response.shape[1]])
-    # for y, x in zip(indices[0], indices[1]):
-    #     if x in xborder or y in yborder:  # not considering border points
-    #         continue
-    #     points.append(cv2.KeyPoint(x, y, 1))
-
-    # method 2
     maxima = peak_local_max(response, min_distance=1, threshold_abs=threshold)
     for maximum in maxima:
         points.append(cv2.KeyPoint(maximum[1], maximum[0], 1))
-    # with changing k in the R equation, we detect different number of corners.
-    # k = 0.005 is the best according to this image.
+
     return points
 
 
@@ -142,7 +135,15 @@ def harrisEdges(input, response, edge_threshold=-0.01):
     '''
     result = input.copy()
 
+    # 1) if the response is smaller than a threshold
     response = np.where(response > edge_threshold, np.inf, response)
+
+    # 2) it is a minimum in x or y direction
+    for x, y in zip(range(response.shape[0]), range(response.shape[1])):
+        minima_x = argrelextrema(response[:, y], np.less)
+        minima_y = argrelextrema(response[x], np.less)
+        result[minima_x, x] =  (0, 0, 255)
+        result[y, minima_y] =  (0, 0, 255)
 
     for x, res in enumerate(response):
         y = argrelextrema(res, np.less)
