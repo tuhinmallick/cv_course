@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import pdb
 
 from matching import computeMatches, createMatchImage
 from homography import testHomography
@@ -12,7 +13,7 @@ IMAGE_DIR = '../data/'
 
 def main():
 
-    testHomography()
+    # testHomography()
 
     ## =========== Loading ===========
 
@@ -48,7 +49,7 @@ def main():
     for image_data in image_data_dicts:
         new_image_data = computeFeatures(image_data)
         temp_image_data_dicts.append(new_image_data)
-    image_data_dicts = new_image_data_dicts
+    image_data_dicts = temp_image_data_dicts
 
     ## =========== Pairwise Feature Matching ===========
     for i in range(1, len(image_data_dicts)):
@@ -69,7 +70,7 @@ def main():
         image_data_dicts[i-1]['HtoNext'] = H
 
     ## =============== Stitching ==================
-    simg = createStichedImage(image_data_dicts))
+    simg = createStichedImage(image_data_dicts)
     cv2.imwrite("output.png", simg)
 
 if __name__ == "__main__":
