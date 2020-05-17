@@ -1,6 +1,6 @@
 """
 Created on May 17, 2020.
-k-Nearest Neighbor Search
+k-Nearest Neighbor Search and Outlier Removal
 
 @authors:
 Soroosh Tayebi Arasteh <soroosh.arasteh@fau.de> https://github.com/starasteh/
@@ -37,21 +37,23 @@ def matchknn2(descriptors1, descriptors2):
         distance_sorted = np.sort(distance)
         dm1 = cv2.DMatch(i, np.argmin(distance), np.min(distance))
         dm2 = cv2.DMatch(i, np.argwhere(distance == distance_sorted[1])[0,0], distance_sorted[1])
-        knnmatches.append((dm1, dm2))
+        knnmatches.append([dm1, dm2])
 
     return knnmatches
 
 
 def ratioTest(knnmatches, ratio_threshold):
+    '''
+    Outlier Removal
+    Compute the ratio between the nearest and second nearest neighbor.
+    Add the nearest neighbor to the output matches if the ratio is smaller than ratio_threshold
+    '''
     matches = []
-
-    ## TODO 2.2
-    ## Compute the ratio between the nearest and second nearest neighbor.
-    ## Add the nearest neighbor to the output matches if the ratio is smaller than ratio_threshold.
-    #if SOLUTION >= 2
-
-
+    for distances in knnmatches:
+        if (distances[0].distance / distances[1].distance) < ratio_threshold:
+            matches.append(distances[0])
     return matches
+
 
 def computeMatches(img1, img2):
     knnmatches = matchknn2(img1['descriptors'], img2['descriptors'])

@@ -1,4 +1,6 @@
 import cv2
+import pdb
+
 
 def computeFeatures(image_data):
     # static thread_local Ptr<ORB> detector = cv::ORB::create(2000);
