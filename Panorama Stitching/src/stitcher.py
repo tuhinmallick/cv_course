@@ -79,14 +79,17 @@ def createStichedImage(image_data_dir):
         ## Project the image onto the reference image plane
         img2 = image_data_dir[i]
         tmp = np.zeros([roi[3], roi[2], 3])
-        tmp = cv2.warpPerspective(img2['img'], img2['HtoReference'], (tmp.shape[1], tmp.shape[0]), cv2.INTER_LINEAR)
+
+        rgba_img = cv2.cvtColor(img2['img'], cv2.COLOR_RGB2RGBA)
+        rgba_img[:, :, 3] = 255
+
+        tmp = cv2.warpPerspective(rgba_img, img2['HtoReference'], (tmp.shape[1], tmp.shape[0]), cv2.INTER_NEAREST)
 
         ## Added it to the output image
         for y in range(stitchedImage.shape[0]):
             for x in range(stitchedImage.shape[1]):
-                if (x < stitchedImage.shape[1] and y < stitchedImage.shape[0] and np.array_equal(
-                        stitchedImage[y, x, :], np.array([0, 0, 0]))):
-                    stitchedImage[y, x] = tmp[y, x, :]
+                if (tmp[y, x, 3] == 255 and np.array_equal(stitchedImage[y, x], np.array([0, 0, 0]))):
+                    stitchedImage[y, x] = tmp[y, x, 0:3]
 
         print("Added image " + str(i) + " - " + str(img2['file']) + ".")
         print("Press any key to continue...")
