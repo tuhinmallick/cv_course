@@ -2,30 +2,31 @@ import numpy as np
 import cv2, pdb
 from math import floor, ceil
 
+
 def computeHtoref(image_data_dir, center):
-    for i in range(center-1, -1, -1):
+    for i in range(center - 1, -1, -1):
         c = image_data_dir[i]
-        next_ = image_data_dir[i+1]
+        next_ = image_data_dir[i + 1]
         c['HtoReference'] = np.matmul(next_['HtoReference'], c['HtoNext'])
 
-    for i in range(center+1, len(image_data_dir), 1):
+    for i in range(center + 1, len(image_data_dir), 1):
         c = image_data_dir[i]
-        prev = image_data_dir[i-1]
+        prev = image_data_dir[i - 1]
         c['HtoReference'] = np.matmul(prev['HtoReference'], c['HtoPrev'])
 
     return image_data_dir
 
-def createStichedImage(image_data_dir):
 
-    print ("Stitching with "
-        + str(len(image_data_dir)) +
-        " images..")
+def createStichedImage(image_data_dir):
+    print("Stitching with "
+          + str(len(image_data_dir)) +
+          " images..")
 
     center = len(image_data_dir) // 2
     ref = image_data_dir[center]
     image_data_dir = computeHtoref(image_data_dir, center)
 
-    print ("Reference Image : " + str(center) + " - " + ref['file'])
+    print("Reference Image : " + str(center) + " - " + ref['file'])
 
     minx = 2353535
     maxx = -2353535
@@ -48,15 +49,15 @@ def createStichedImage(image_data_dir):
             miny = min(miny, p[1])
             maxy = max(maxy, p[1])
 
-    roi = np.array([floor(minx), floor(miny), ceil(maxx)-floor(minx), ceil(maxy)-floor(miny)])
-    print ("ROI " + str(roi))
+    roi = np.array([floor(minx), floor(miny), ceil(maxx) - floor(minx), ceil(maxy) - floor(miny)])
+    print("ROI " + str(roi))
 
     ## Translate everything so the top left corner is at (0,0)
     ## Note: This can be simply done by adding the negavite offset to the
     ## homopgrahy
-    offsetX            = floor(minx);
-    offsetY            = floor(miny);
-    ref['HtoReference'][0, 2]= -offsetX;
+    offsetX = floor(minx);
+    offsetY = floor(miny);
+    ref['HtoReference'][0, 2] = -offsetX;
     ref['HtoReference'][1, 2] = -offsetY;
     computeHtoref(image_data_dir, center)
 
@@ -69,7 +70,7 @@ def createStichedImage(image_data_dir):
             tmp = 1
         else:
             tmp = -1
-        i = center + tmp * ((k + 1)//2)
+        i = center + tmp * ((k + 1) // 2)
 
         ## Out of index bounds check
         if (i < 0 or i >= len(image_data_dir)):
@@ -83,11 +84,12 @@ def createStichedImage(image_data_dir):
         ## Added it to the output image
         for y in range(stitchedImage.shape[0]):
             for x in range(stitchedImage.shape[1]):
-                if (x < stitchedImage.shape[1] and y < stitchedImage.shape[0] and np.array_equal(stitchedImage[y, x, :], np.array([0, 0, 0]))):
+                if (x < stitchedImage.shape[1] and y < stitchedImage.shape[0] and np.array_equal(
+                        stitchedImage[y, x, :], np.array([0, 0, 0]))):
                     stitchedImage[y, x] = tmp[y, x, :]
 
-        print ("Added image " + str(i) + " - " + str(img2['file']) + ".")
-        print ("Press any key to continue...")
+        print("Added image " + str(i) + " - " + str(img2['file']) + ".")
+        print("Press any key to continue...")
         cv2.imshow("Panorama", stitchedImage)
         cv2.waitKey(0)
 

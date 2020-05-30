@@ -22,16 +22,13 @@ def numInliers(points1, points2, H, threshold):
     '''
     inlierCount = 0
     ## Hint: Construct a Homogeneous point of type 'Vec3' before applying H.
-    #TODO: homogeneous representation
-    for i in range(len(points1)):
-        point2 = np.sqrt(points2[i][0]**2 + points2[i][1]**2)
-        point1 = np.sqrt(points1[i][0]**2 + points1[i][1]**2)
-        distance = point2 - H * point1
-        if (np.linalg.det(distance) < threshold):
-            inlierCount += 1
-
+    points1_homog = np.vstack((points1, np.ones((1, points1.shape[1]))))
+    points2_homog = np.vstack((points2, np.ones((1, points2.shape[1]))))
+    points2_estimate_homog = H @ points1_homog
+    points2_estimate = points2_estimate_homog / points2_estimate_homog[-1, :]
+    distance_vector = np.sqrt(np.sum((points2_estimate - points2_homog) ** 2, axis=0))
+    inlierCount = np.sum(distance_vector < threshold)
     return inlierCount
-
 
 
 def computeHomographyRansac(img1, img2, matches, iterations, threshold):
@@ -51,19 +48,18 @@ def computeHomographyRansac(img1, img2, matches, iterations, threshold):
 
         # Construct the subsets by randomly choosing 4 matches.
         for _ in range(4):
-            subset1.append(points1[np.random.randint(0, len(points1) - 1)])
-            subset2.append(points2[np.random.randint(0, len(points2) - 1)])
-
+            idx = np.random.randint(0, len(points1) - 1)
+            subset1.append(points1[idx])
+            subset2.append(points2[idx])
         # Compute the homography for this subset
         H = computeHomography(subset1, subset2)
 
         # Compute the number of inliers
-        inlierCount = numInliers(points1, points2, H, threshold)
+        inlierCount = numInliers(np.array(points1).T, np.array(points2).T, H, threshold)
 
         # Keep track of the best homography (use the variables bestH and bestInlierCount)
         if inlierCount > bestInlierCount:
             bestInlierCount = inlierCount
             bestH = H
-
-    print ("(" + str(img1['id']) + "," + str(img2['id']) + ") found " + str(bestInlierCount) + " RANSAC inliers.")
+    print("(" + str(img1['id']) + "," + str(img2['id']) + ") found " + str(bestInlierCount) + " RANSAC inliers.")
     return bestH
