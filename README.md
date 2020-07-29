@@ -12,7 +12,7 @@ The main goal of the project is to illustrate different algorithms and to try th
 
 - **Edge and Corner Detection**
 
-- **Panorama Stitching**: Including [ORB](http://www.willowgarage.com/sites/default/files/orb_final.pdf) Feature Matching usin 2-Nearest Neighbor Search with Outlier Removing, A homography that transforms the image plane of one camera
+- **Panorama Stitching**: Including [ORB](http://www.willowgarage.com/sites/default/files/orb_final.pdf) Feature Matching using 2-Nearest Neighbor Search with Outlier Removing, a homography that transforms the image plane of one camera
 to the image plane of an other camera, and RANSAC algorithm.
 
 ### In progress...
