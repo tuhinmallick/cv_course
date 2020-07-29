@@ -2,6 +2,9 @@
 
 ### By Soroosh Tayebi Arasteh and Amin Heydarshahi
 
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+[![](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/starasteh/cv_course/pulls)
+
 This project contains the programming exercises of the *Computer Vision* course (SS20) offered by the [Pattern Recognition Lab (LME)](https://lme.tf.fau.de/) of the [Computer Science Department](https://www.informatik.uni-erlangen.de/) at [University of Erlangen-Nuremberg (FAU)](https://www.fau.eu/).
 
 ## Contents
