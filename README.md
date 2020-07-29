@@ -2,7 +2,7 @@
 
 ### By Soroosh Tayebi Arasteh and Amin Heydarshahi
 
-This project contains the programming exercises of the *Computer Vision* course (SS20) offered by the [Pattern Recognition Lab (LME)](https://lme.tf.fau.de/) of the [Computer Science Department](https://www.informatik.uni-erlangen.de/) at University of Erlangen-Nuremberg (FAU).
+This project contains the programming exercises of the *Computer Vision* course (SS20) offered by the [Pattern Recognition Lab (LME)](https://lme.tf.fau.de/) of the [Computer Science Department](https://www.informatik.uni-erlangen.de/) at [University of Erlangen-Nuremberg (FAU)](https://www.fau.eu/).
 
 ## Contents
 
